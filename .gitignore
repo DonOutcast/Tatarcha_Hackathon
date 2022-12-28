@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 # Pycahrm
 .idea/
+# My confidition inforamtions
+config.py
