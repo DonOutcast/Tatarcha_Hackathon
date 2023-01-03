@@ -131,3 +131,5 @@ dmypy.json
 .idea/
 # My confidition inforamtions
 config.py
+
+*.DS_Store

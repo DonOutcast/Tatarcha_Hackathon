@@ -5,6 +5,7 @@ from requests.auth import HTTPBasicAuth
 from fake_useragent import UserAgent
 from config import MAIL, PASSWORD
 
+
 # def login():
 #     # basic = HTTPBasicAuth('sham1996@yandex.ru', 'sham1996')
 #     # URL = "https://api.ishkola.com/api/v1/login"
@@ -16,8 +17,8 @@ from config import MAIL, PASSWORD
 def login(mail: str, password: str):
     print(UserAgent())
     headers = {
-               "Authorization": "Bearer 5959|cUX1x3nac8sLwqrG3F4a9qDHYxPLtJkI8z7pD65z",
-               "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"}
+        "Authorization": "Bearer 5959|cUX1x3nac8sLwqrG3F4a9qDHYxPLtJkI8z7pD65z",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"}
 
     URL = "https://api.ishkola.com/api/v1/login"
     adapter = requests.adapters.HTTPAdapter(
@@ -30,16 +31,26 @@ def login(mail: str, password: str):
                }
 
     res = s.post(url=URL, json=payload)
-    print(res.text)
+    # print(res.text)
     if res.status_code != 204:
         res.headers.update({'Authorization': json.loads(res.content)["token"]})
-    r = s.get("https://api.ishkola.com/api/v1/teacher/dashboard/statistics", headers=headers)
-    print(r.text)
+    # r = s.get("https://api.ishkola.com/api/v1/teacher/dashboard/statistics", headers=headers)
+    new_headers = {
+
+        "Authorization": "6001 | vXYEQpZLsq4NCUPAlYBRy9g7YH9yE5KRtYdHsqZ2",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
+
+    }
+    n = {"month": "01.12.2022"}
+    temp = s.options("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.01.2023", headers=new_headers, data=n)
+    print(temp.headers)
+    r = s.get("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.12.2022", headers=new_headers , )
+    print(r.status_code)
     return s
 
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     session = login(MAIL, PASSWORD)
 
     # soup = BeautifulSoup(r.content, "html.parser")
