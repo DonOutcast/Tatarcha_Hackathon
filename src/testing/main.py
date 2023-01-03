@@ -42,12 +42,13 @@ def login(mail: str, password: str):
 
     }
     n = {"month": "01.12.2022"}
-    temp = s.options("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.01.2023", headers=new_headers, data=n)
+    temp = s.options("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.01.2023",
+                     headers=new_headers, data=n)
     print(temp.headers)
-    r = s.get("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.12.2022", headers=new_headers , )
+    r = s.get("https://api.ishkola.com/api/v1/teacher/dashboard/calendar-lessons?month=01.12.2022",
+              headers=new_headers, )
     print(r.status_code)
     return s
-
 
 
 if __name__ == "__main__":

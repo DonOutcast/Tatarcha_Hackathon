@@ -1,42 +1,57 @@
 import asyncio
 import logging
 
-import aiogram.filters
-from aiogram import Bot, Dispatcher, types
-from config import API_TOKEN
-from aiogram.filters import Command
-from aiogram import flags
-from aiogram import BaseMiddleware
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 
-# Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
-# Объект бота
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
-# Диспетчер
-dp = Dispatcher()
-
-
-# Хэндлер на команду /start
-@flags.chat_action
-@dp.message(aiogram.filters.Text(contains="start", ignore_case=True, ), flags={'typing': True})
-async def cmd_start(message: types.Message):
-    await asyncio.sleep(15)
-    await message.answer("<b>Hello!</b>")
-    a = await bot.send_dice(message.from_user.id)
-    print(a.dice)
+from tgbot.config import load_config
+from tgbot.handlers.admin import admin_router
+from tgbot.handlers.echo import echo_router
+from tgbot.handlers.user import user_router
+from tgbot.middlewares.config import ConfigMiddleware
+from tgbot.services import broadcaster
+from tgbot.utils import set_bot_commands
+from tgbot.database import db
+logger = logging.getLogger(__name__)
 
 
-async def cmd_test(message: types.Message, bot: Bot):
-    await bot.send_message(message.from_user.id, text="Hello World")
+async def on_startup(bot: Bot, admin_ids: list[int]):
+    await broadcaster.broadcast(bot, admin_ids, "Бот работает")
 
 
-dp.message.register(cmd_test, Command("test"))
+def register_global_middlewares(dp: Dispatcher, config):
+    dp.message.outer_middleware(ConfigMiddleware(config))
+    dp.callback_query.outer_middleware(ConfigMiddleware(config))
 
 
-# Запуск процесса поллинга новых апдейтов
 async def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format=u'%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s',
+    )
+    logger.info("Starting bot")
+    config = load_config(".env")
+    print(db.make_connection_string(config.db))
+    storage = MemoryStorage()
+    bot = Bot(token=config.tg_bot.token, parse_mode='HTML')
+    dp = Dispatcher(storage=storage)
+
+    for router in [
+        admin_router,
+        user_router,
+        echo_router
+    ]:
+        dp.include_router(router)
+
+    register_global_middlewares(dp, config)
+    await set_bot_commands.set_default_commands(bot)
+    await on_startup(bot, config.tg_bot.admin_ids)
     await dp.start_polling(bot)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.error("Бот був вимкнений!")

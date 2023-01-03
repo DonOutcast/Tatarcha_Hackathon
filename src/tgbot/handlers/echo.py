@@ -14,6 +14,7 @@ async def bot_echo(message: types.Message):
     ]
 
     await message.answer('\n'.join(text))
+    print(message.from_user.id)
 
 
 @echo_router.message(F.text)
